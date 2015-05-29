@@ -262,6 +262,7 @@ var ks = {
             for(var p = 0; p < prices.length; p ++){
                 var price = prices[p];
                 console.log('price: ' + price.val + ' ' + price.name );
+                console.log(steelProducts[price.name]);
                 if(steelProducts[price.name]){
                     console.log(price.name);
                     var ratio = price.name == 'steel'? 1 : craftRatio;
