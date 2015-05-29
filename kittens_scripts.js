@@ -300,9 +300,24 @@ var ks = {
             }
 
             console.log('bonus: ' + building.bonus);
+
+            building.efficiency = building.bonus/building.cost;
+            console.log('efficiency: ' + building.efficiency);
         }
 
-        return buildings;
+        var mostEfficientBuilding;
+        var highestEfficiency = -Infinity;
+
+        for( var k = 0; k < buildings.length; k++){
+            building = buildings[k];
+
+            if(building.efficiency > highestEfficiency){
+                highestEfficiency = building.efficiency;
+                mostEfficientBuilding = building;
+            }
+        }
+
+        return mostEfficientBuilding;
     },
 
 };
