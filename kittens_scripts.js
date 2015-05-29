@@ -4,6 +4,7 @@
 // bookmarklet:::
 // javascript:(function(){var d=document,s=d.createElement('script');s.src='https://rawgit.com/brevehart/Web-Game-Scripts/kittens-updates/kittens_scripts.js';d.body.appendChild(s);})();
 
+//noinspection JSUnusedGlobalSymbols
 var ks = {
 	game: gamePage,
 
@@ -13,7 +14,8 @@ var ks = {
 
 
     calcKarma:	function(){
-		var kittens = this.game.resPool.get('kittens').value;
+        //noinspection JSUnresolvedVariable,JSUnresolvedFunction
+        var kittens = this.game.resPool.get('kittens').value;
 		var newKarmaKittens = 0;
 			
 			if (kittens > 35){
@@ -79,11 +81,13 @@ var ks = {
 				this.setVisible(true);
 			}
 
-			if (upgrade.researched && this.game.workshop.hideResearched){
+			//noinspection JSPotentiallyInvalidUsageOfThis
+            if (upgrade.researched && this.game.workshop.hideResearched){
 				this.setVisible(false);
 			}
 			
-			if (worthless && this.game.workshop.hideWorthless){ // addded
+			//noinspection JSPotentiallyInvalidUsageOfThis
+            if (worthless && this.game.workshop.hideWorthless){ // addded
 				this.setVisible(false);
 			}
 		};
@@ -179,7 +183,7 @@ var ks = {
 			
 			resPair[1] = resPerTick;
 			
-		};
+		}
 		
 		return resPairs;
 	},
@@ -211,7 +215,7 @@ var ks = {
 		
 		if(this.game.prestige.getPerk('chronomancy').researched){
 			chance *= 1.1;
-		};
+		}
 
 		var dayPerTick = 0.1; // one chance per day to observe stars
 
@@ -219,6 +223,11 @@ var ks = {
 
 		return avgChartsPerTick;
 	},
+
+    steelCalc: function(){
+
+      return  'it works';
+    },
 
 };
 
