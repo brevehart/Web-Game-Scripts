@@ -259,6 +259,7 @@ var ks = {
 
             totalSteelCost = 0;
             for(var price in prices){
+                console.log('price: ' + price.val + ' ' + price.name )
                 if(prices.hasOwnProperty(price) && steelProducts[price.name]){
                     var ratio = price.name == 'steel'? 1 : craftRatio;
                     totalSteelCost += price.val*steelProducts[price.name]/craftRatio;
