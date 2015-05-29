@@ -259,7 +259,7 @@ var ks = {
             console.log(prices);
 
             totalSteelCost = 0;
-            for(var p in prices){
+            for(var p = 0; p < prices.length; p ++){
                 var price = prices[p];
                 console.log('price: ' + price.val + ' ' + price.name );
                 if(prices.hasOwnProperty(price) && steelProducts[price.name]){
