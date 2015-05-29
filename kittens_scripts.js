@@ -242,7 +242,7 @@ var ks = {
         var steelProducts = {
             steel: 1,
             gear: 15,
-            concrete: 25,
+            concrate: 25, // sic
             alloy: 75
         };
 
@@ -262,9 +262,11 @@ var ks = {
             for(var p = 0; p < prices.length; p ++){
                 var price = prices[p];
                 console.log('price: ' + price.val + ' ' + price.name );
-                if(prices.hasOwnProperty(price) && steelProducts[price.name]){
+                if(steelProducts[price.name]){
+                    console.log(price.name);
                     var ratio = price.name == 'steel'? 1 : craftRatio;
-                    totalSteelCost += price.val*steelProducts[price.name]/craftRatio;
+                    console.log(ratio);
+                    totalSteelCost += price.val*steelProducts[price.name]/ratio;
                 }
 
             }
