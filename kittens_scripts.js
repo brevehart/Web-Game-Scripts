@@ -1,3 +1,9 @@
+// kittens_scripts.js
+//
+// add some additional features to Kittens Game
+// bookmarklet:
+// javascript:(function(){var d=document,s=d.createElement('script');s.src='https://rawgit.com/brevehart/Web-Game-Scripts/master/kittens_scripts.js';d.body.appendChild(s);})();
+
 var calcKarma =	(function(){
 	var kittens = gamePage.resPool.get('kittens').value;
 	var newKarmaKittens = 0;
@@ -170,8 +176,6 @@ var woodCalc = function(){
 	
 	return resPairs;
 };
-
-woodCalc();
 
 /////////////////////////////////////////////////
 /* wood production comparison */
