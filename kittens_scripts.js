@@ -2,7 +2,7 @@
 //
 // add some additional features to Kittens Game
 // bookmarklet:::
-// javascript:(function(){var d=document,s=d.createElement('script');s.src='https://rawgit.com/brevehart/Web-Game-Scripts/master/kittens_scripts.js';d.body.appendChild(s);})();
+// javascript:(function(){var d=document,s=d.createElement('script');s.src='https://rawgit.com/brevehart/Web-Game-Scripts/kittens-updates/kittens_scripts.js';d.body.appendChild(s);})();
 
 var ks = {
 	game: gamePage,
