@@ -1,0 +1,18 @@
+var quarryClicker = setInterval(function(){ 
+	if(get('quarry-discovery').style.display == 'inline') {
+		MD.findQuarryReward();  
+		} 
+	}, 
+	600
+)
+
+var autoMiner = setInterval(MD.dig, 100)
+
+var mageBuffer = setInterval(
+	function(){
+		for(var i = 0; i < 6; i++){
+			MD.clickMage(i);
+		}
+	},
+	60000
+)

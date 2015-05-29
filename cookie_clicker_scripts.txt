@@ -1,0 +1,24 @@
+
+
+
+for(var i = 210; i < 230; i++) {Game.Unlock(Game.UpgradesById[i].name) }; // unlock easter
+for(var i = 134; i < 140; i++) {Game.Unlock(Game.UpgradesById[i].name) }; // unlock halloween
+
+var reindeerClicker = setInterval(function() {if(Game.seasonPopup.life > 0) {Game.seasonPopup.click();} }, 500);
+var frenzyClicker = setInterval(function(){if( Game.clickFrenzy > 0){ Game.ClickCookie(); } }, 12);
+var goldenClicker = setInterval(Game.goldenCookie.click, 500);
+
+var superAutoClicker = function(clicksPerTick, tickLength){
+  var cheated = false;
+  var intoTheAbyss = function(){
+    if(!cheated){
+      cheated = true;
+      for(var i = 0; i < clicksPerTick; i++){
+        Game.ClickCookie();
+		Game.lastClick = 0 ;
+      };
+    cheated = false;
+    };
+  };
+  return setInterval(intoTheAbyss, tickLength);
+};
