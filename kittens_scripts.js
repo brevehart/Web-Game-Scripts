@@ -290,10 +290,10 @@ var ks = {
                     building.bonus = this.game.bld.get('reactor').effects['productionRatio'];
                     break;
                 case 'magneto':
-                    building.bonus = mag.effects['magnetoRatio'] + sw.val * swBoost;
+                    building.bonus = mag.effects['magnetoRatio']*(1 + sw.val * swBoost );
                     break;
                 case 'steamworks':
-                    building.bonus = swBoost * mag.val;
+                    building.bonus = swBoost * mag.val * mag.effects['magnetoRatio']*100;
                     break;
 
             }
