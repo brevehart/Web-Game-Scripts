@@ -234,9 +234,9 @@ var ks = {
     steelCalc: function () {
 
         var buildings = [
-            { name: 'magneto'},
-            { name: 'steamworks'},
-            { name: 'reactor'}
+            {name: 'magneto'},
+            {name: 'steamworks'},
+            {name: 'reactor'}
         ];
 
         var steelProducts = {
@@ -255,46 +255,45 @@ var ks = {
 
         var sw = this.game.bld.get('steamworks');
         var mag = this.game.bld.get('magneto');
+        var swBoost = sw.effects['magnetoBoostRatio'];
 
 
-        for(var i = 0; i < buildings.length; i ++ ){
+        for (var i = 0; i < buildings.length; i++) {
             var building = buildings[i];
 
             // calculate total steel cost for next building
             prices = this.game.bld.getPrices(building.name);
 
-            console.log('prices for ' + building.name +': ');
+            console.log('prices for ' + building.name + ': ');
             console.log(prices);
 
             totalSteelCost = 0;
-            for(var p = 0; p < prices.length; p ++){
+            for (var p = 0; p < prices.length; p++) {
                 var price = prices[p];
-                console.log('price: ' + price.val + ' ' + price.name );
-                console.log(steelProducts[price.name]);
-                if(steelProducts[price.name]){
-                    console.log(price.name);
-                    var ratio = price.name == 'steel'? 1 : craftRatio;
-                    console.log(ratio);
-                    totalSteelCost += price.val*steelProducts[price.name]/ratio;
+                console.log('price: ' + price.val + ' ' + price.name);
+                //console.log(steelProducts[price.name]);
+                if (steelProducts[price.name]) {
+                    //console.log(price.name);
+                    var ratio = price.name == 'steel' ? 1 : craftRatio;
+                    //console.log(ratio);
+                    totalSteelCost += price.val * steelProducts[price.name] / ratio;
                 }
             }
 
             building.cost = totalSteelCost;
-            console.log('total steel: '+ totalSteelCost);
+            console.log('total steel: ' + totalSteelCost);
 
 
             // calculate production bonus for next building
-            switch(building.name){
+            switch (building.name) {
                 case 'reactor':
                     building.bonus = this.game.bld.get('reactor').effects['productionRatio'];
                     break;
                 case 'magneto':
-
-                    building.bonus = mag.effects['magnetoRatio'] +
-                        sw.val*sw.effects['magnetoBoostRatio'];
+                    building.bonus = mag.effects['magnetoRatio'] + sw.val * swBoost;
                     break;
                 case 'steamworks':
-                    building.bonus = sw.val*mag.val;
+                    building.bonus = swBoost * mag.val;
                     break;
 
             }
