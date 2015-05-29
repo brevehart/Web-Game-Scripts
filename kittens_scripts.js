@@ -247,7 +247,7 @@ var ks = {
         };
 
         var craftRatio = 1 + this.game.bld.getEffect('craftRatio');
-        console.log('craftRatio: ' + craftRatio);
+        //console.log('craftRatio: ' + craftRatio);
 
         var prices;
         var totalSteelCost;
@@ -256,6 +256,7 @@ var ks = {
         var sw = this.game.bld.get('steamworks');
         var mag = this.game.bld.get('magneto');
         var swBoost = sw.effects['magnetoBoostRatio'];
+        var magnetoEffect = mag.effects['magnetoRatio'];
 
 
         for (var i = 0; i < buildings.length; i++) {
@@ -265,7 +266,7 @@ var ks = {
             prices = this.game.bld.getPrices(building.name);
 
             console.log('prices for ' + building.name + ': ');
-            console.log(prices);
+            //console.log(prices);
 
             totalSteelCost = 0;
             for (var p = 0; p < prices.length; p++) {
@@ -290,10 +291,10 @@ var ks = {
                     building.bonus = this.game.bld.get('reactor').effects['productionRatio'];
                     break;
                 case 'magneto':
-                    building.bonus = mag.effects['magnetoRatio']*(1 + sw.val * swBoost );
+                    building.bonus = magnetoEffect * (1 + sw.val * swBoost );
                     break;
                 case 'steamworks':
-                    building.bonus = swBoost * mag.val * mag.effects['magnetoRatio'];
+                    building.bonus = swBoost * mag.val * magnetoEffect;
                     break;
 
             }
