@@ -293,7 +293,7 @@ var ks = {
                     building.bonus = mag.effects['magnetoRatio']*(1 + sw.val * swBoost );
                     break;
                 case 'steamworks':
-                    building.bonus = swBoost * mag.val * mag.effects['magnetoRatio']*100;
+                    building.bonus = swBoost * mag.val * mag.effects['magnetoRatio'];
                     break;
 
             }
