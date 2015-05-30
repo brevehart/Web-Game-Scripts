@@ -317,9 +317,6 @@ var ks = {
 
             building.cost.steel = totalSteelCost;
             console.log('total steel: ' + totalSteelCost);
-            if(building.cost.blueprint){
-                console.log('blueprints: ' + building.cost.blueprint);
-            }
 
 
             // calculate production bonus for next building
@@ -375,7 +372,10 @@ var ks = {
         }
 
         console.log('best steel: ' + mostEfficientBuilding.steel.name);
-        console.log('best blueprint: ' + mostEfficientBuilding.blueprint.name);
+
+        if(building.cost.blueprint) {
+            console.log('best blueprint: ' + mostEfficientBuilding.blueprint.name);
+        }
 
         return mostEfficientBuilding;
     },
