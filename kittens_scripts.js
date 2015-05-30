@@ -5,13 +5,6 @@
 // javascript:(function(){var d=document,s=d.createElement('script');s.src='https://rawgit.com/brevehart/Web-Game-Scripts/kittens-updates/kittens_scripts.js';d.body.appendChild(s);})();
 
 
-// add a nice filter function to use later
-Array.prototype.filterByName = function (theName) {
-    return this.filter(function (ob) {
-        return ob.name == theName;
-    })
-};
-
 //noinspection JSUnusedGlobalSymbols
 var ks = {
     game: gamePage,
