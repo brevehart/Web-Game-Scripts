@@ -231,21 +231,34 @@ var ks = {
         return avgChartsPerTick;
     },
 
-    steelCalc: function () {
+    steelCalc: function (res) {
+
+        var allBuildingNames = {
+            production: ['steamworks', 'magneto', 'reactor'],
+            oil: ['oilWell', 'biolab'],
+            kittens: ['mansion', 'spaceStation']
+        };
+
+        //
+        var buildingNames = allBuildingNames[res];
+
+        if(!buildingNames){
+            console.log('Resource type "' + res + '" is not supported.');
+            return '';
+        }
+
         var swBoost = this.game.bld.get('steamworks').effects['magnetoBoostRatio'];
         var magnetoEffect = this.game.bld.get('magneto').effects['magnetoRatio'];
 
-        var buildingNames = ['steamworks', 'magneto', 'reactor'];
 
+        var unlockedBuildings = [];
 
-
-        var unlockedBuildings = [
-        ];
-
+        // select only buildings for which we currently have the technology
         for(var i = 0; i < buildingNames.length; i++) {
-            var building = this.game.bld.get(buildingNames[i]);
+            var bn = buildingNames[i];
+            var building = (bn == 'spaceStation')? this.game.space.getProgram(bn): this.game.bld.get(bn);
             if (building.unlocked) {
-                unlockedBuildings.push({name: buildingNames[i]});
+                unlockedBuildings.push({name: bn});
             }
         }
 
@@ -259,19 +272,19 @@ var ks = {
         var craftRatio = 1 + this.game.bld.getEffect('craftRatio');
         //console.log('craftRatio: ' + craftRatio);
 
-        var prices;
-        var totalSteelCost;
-
-
-
 
 
         for (var i = 0; i < unlockedBuildings.length; i++) {
             var building = unlockedBuildings[i];
+            var prices;
+            var totalSteelCost;
 
             // calculate total steel cost for next building
-            prices = this.game.bld.getPrices(building.name);
-
+            if(building.name == 'spaceStation'){
+                prices = this.game.space.getProgram(building.name).prices;
+            } else {
+                prices = this.game.bld.getPrices(building.name);
+            }
             console.log('prices for ' + building.name + ': ');
             //console.log(prices);
 
@@ -303,6 +316,18 @@ var ks = {
                 case 'steamworks':
                     building.bonus = swBoost * this.game.bld.get('magneto').val * magnetoEffect;
                     break;
+                case 'oilWell':
+                    building.bonus = this.game.bld.get('oilWell').effects.oilPerTickBase;
+                    break;
+                case 'biolab':
+                    building.bonus = this.game.bld.get('biolab').effects.oilPerTick || 0; // zero if no oil production yet
+                    break;
+                case 'mansion':
+                    building.bonus = this.game.bld.get('mansion').effects['maxKittens'];
+                    break;
+                case 'spaceStation':
+                    building.bonus = this.game.space.getProgram('spaceStation').effects['maxKittens'];
+                    break;
                 default:
                     building.bonus = 0;
 
@@ -313,6 +338,7 @@ var ks = {
             building.efficiency = building.bonus/building.cost;
             console.log('efficiency: ' + building.efficiency);
         }
+
 
         var mostEfficientBuilding;
         var highestEfficiency = -Infinity;
