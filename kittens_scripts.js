@@ -281,7 +281,21 @@ var ks = {
 
             // calculate total steel cost for next building
             if(building.name == 'spaceStation'){
-                prices = this.game.space.getProgram(building.name).prices;
+                // ugly hack to get price of next space station
+                var hackPrices = function(){
+                    var tmp = com.nuclearunicorn.game.ui.SpaceProgramBtn.prototype;
+                    tmp.id = 'spaceStation';
+                    tmp.game = this.game;
+
+                    var prices = tmp.getPrices();
+
+                    delete tmp.game;
+                    delete tmp.id;
+
+                    return prices;
+                };
+
+                prices = hackPrices();
             } else {
                 prices = this.game.bld.getPrices(building.name);
             }
