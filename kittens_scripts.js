@@ -232,12 +232,22 @@ var ks = {
     },
 
     steelCalc: function () {
+        var swBoost = this.game.bld.get('steamworks').effects['magnetoBoostRatio'];
+        var magnetoEffect = this.game.bld.get('magneto').effects['magnetoRatio'];
 
-        var buildings = [
-            {name: 'magneto'},
-            {name: 'steamworks'},
-            {name: 'reactor'}
+        var buildingNames = ['steamworks', 'magneto', 'reactor'];
+
+
+
+        var unlockedBuildings = [
         ];
+
+        for(var i = 0; i < buildingNames.length; i++) {
+            var building = this.game.bld.get(buildingNames[i]);
+            if (building.unlocked) {
+                unlockedBuildings.push({name: buildingNames[i]});
+            }
+        }
 
         var steelProducts = {
             steel: 1,
@@ -253,14 +263,11 @@ var ks = {
         var totalSteelCost;
 
 
-        var sw = this.game.bld.get('steamworks');
-        var mag = this.game.bld.get('magneto');
-        var swBoost = sw.effects['magnetoBoostRatio'];
-        var magnetoEffect = mag.effects['magnetoRatio'];
 
 
-        for (var i = 0; i < buildings.length; i++) {
-            var building = buildings[i];
+
+        for (var i = 0; i < unlockedBuildings.length; i++) {
+            var building = unlockedBuildings[i];
 
             // calculate total steel cost for next building
             prices = this.game.bld.getPrices(building.name);
@@ -294,8 +301,10 @@ var ks = {
                     building.bonus = magnetoEffect * (1 + sw.val * swBoost );
                     break;
                 case 'steamworks':
-                    building.bonus = swBoost * mag.val * magnetoEffect;
+                    building.bonus = swBoost * magneto.val * magnetoEffect;
                     break;
+                default:
+                    building.bonus = 0;
 
             }
 
@@ -308,8 +317,8 @@ var ks = {
         var mostEfficientBuilding;
         var highestEfficiency = -Infinity;
 
-        for( var k = 0; k < buildings.length; k++){
-            building = buildings[k];
+        for( var k = 0; k < unlockedBuildings.length; k++){
+            building = unlockedBuildings[k];
 
             if(building.efficiency > highestEfficiency){
                 highestEfficiency = building.efficiency;
