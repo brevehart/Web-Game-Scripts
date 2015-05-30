@@ -273,6 +273,7 @@ var ks = {
             var totalSteelCost;
 
             building.cost = {};
+            building.efficiency = {};
 
             // calculate total steel cost for next building
             if(building.name == 'spaceStation'){
@@ -308,10 +309,17 @@ var ks = {
                     //console.log(ratio);
                     totalSteelCost += price.val * steelProducts[price.name] / ratio;
                 }
+
+                if (price.name == 'blueprint'){
+                    building.cost.blueprint = price.val;
+                }
             }
 
             building.cost.steel = totalSteelCost;
             console.log('total steel: ' + totalSteelCost);
+            if(building.cost.blueprint){
+                console.log('blueprints: ' + building.cost.blueprint);
+            }
 
 
             // calculate production bonus for next building
@@ -341,22 +349,33 @@ var ks = {
 
             console.log('bonus: ' + building.bonus);
 
-            building.efficiency = building.bonus/building.cost;
-            console.log('efficiency: ' + building.efficiency);
+            building.efficiency.steel = building.bonus/building.cost.steel;
+            console.log('steel efficiency: ' + building.efficiency.steel);
+
+            if(building.cost.blueprint) {
+                building.efficiency.blueprint = building.bonus / building.cost.blueprint;
+                console.log('blueprint efficiency: ' + building.efficiency.blueprint);
+            }
         }
 
 
-        var mostEfficientBuilding;
-        var highestEfficiency = -Infinity;
+        var mostEfficientBuilding = {};
+        var highestEfficiency = {steel: -Infinity, blueprint: -Infinity};
 
         for( var k = 0; k < unlockedBuildings.length; k++){
             building = unlockedBuildings[k];
 
-            if(building.efficiency > highestEfficiency){
-                highestEfficiency = building.efficiency;
-                mostEfficientBuilding = building;
+            for(var res in highestEfficiency) {
+
+                if (building.efficiency[res] > highestEfficiency[res] && highestEfficiency.hasOwnProperty(res)) {
+                    highestEfficiency[res] = building.efficiency[res];
+                    mostEfficientBuilding[res] = building;
+                }
             }
         }
+
+        console.log('best steel: ' + mostEfficientBuilding.steel.name);
+        console.log('best blueprint: ' + mostEfficientBuilding.blueprint.name);
 
         return mostEfficientBuilding;
     },
