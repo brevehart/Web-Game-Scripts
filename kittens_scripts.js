@@ -279,23 +279,23 @@ var ks = {
             var prices;
             var totalSteelCost;
 
+            building.cost = {};
+
             // calculate total steel cost for next building
             if(building.name == 'spaceStation'){
                 // ugly hack to get price of next space station
-                var hackPrices = function(){
+                var hackPrices = function(program){
                     var tmp = com.nuclearunicorn.game.ui.SpaceProgramBtn.prototype;
-                    tmp.id = 'spaceStation';
-                    tmp.game = ks.game;
+                    tmp.program = program;
 
                     var prices = tmp.getPrices();
 
-                    delete tmp.game;
-                    delete tmp.id;
+                    tmp.program = null;
 
                     return prices;
                 };
 
-                prices = hackPrices();
+                prices = hackPrices(this.game.space.getProgram(building.name));
             } else {
                 prices = this.game.bld.getPrices(building.name);
             }
@@ -315,7 +315,7 @@ var ks = {
                 }
             }
 
-            building.cost = totalSteelCost;
+            building.cost.steel = totalSteelCost;
             console.log('total steel: ' + totalSteelCost);
 
 
@@ -342,9 +342,6 @@ var ks = {
                 case 'spaceStation':
                     building.bonus = this.game.space.getProgram('spaceStation').effects['maxKittens'];
                     break;
-                default:
-                    building.bonus = 0;
-
             }
 
             console.log('bonus: ' + building.bonus);
