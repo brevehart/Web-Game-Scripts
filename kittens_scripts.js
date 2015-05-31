@@ -389,7 +389,7 @@ var ks = {
     updateKittenScientistsOptions: function () {
 
         // exit if Kitten Scientists is not loaded
-        if(!version || !version.includes('Kitten Scientists')){
+        if(!(typeof version == 'string' )|| !version.includes('Kitten Scientists')){
             return;
         }
 
