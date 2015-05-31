@@ -281,7 +281,7 @@ var ks = {
                 var hackPrices = function(){
                     var tmp = com.nuclearunicorn.game.ui.SpaceProgramBtn.prototype;
                     tmp.id = 'spaceStation';
-                    tmp.game = dojo.clone(ks.game);
+                    tmp.game = ks.game;
 
                     var prices = tmp.getPrices();
 

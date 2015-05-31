@@ -4,9 +4,9 @@ var quarryClicker = setInterval(function(){
 		} 
 	}, 
 	600
-)
+);
 
-var autoMiner = setInterval(MD.dig, 100)
+var autoMiner = setInterval(MD.dig, 100);
 
 var mageBuffer = setInterval(
 	function(){
@@ -15,4 +15,13 @@ var mageBuffer = setInterval(
 		}
 	},
 	60000
-)
+);
+
+var autodelver = setInterval(function(){
+  var magesToFight = 500;
+  
+  var extraMages = Math.max(0, MD.MAGES_FIGHTING - magesToFight);
+  MD.MAGES_DELVING += extraMages;
+  },
+  30*1000
+);
