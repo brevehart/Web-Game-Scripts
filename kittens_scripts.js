@@ -235,7 +235,7 @@ var ks = {
         //
         var buildingNames = allBuildingNames[res];
 
-        if(!buildingNames){
+        if (!buildingNames) {
             console.log('Resource type "' + res + '" is not supported.');
             return '';
         }
@@ -247,9 +247,9 @@ var ks = {
         var unlockedBuildings = [];
 
         // select only buildings for which we currently have the technology
-        for(var i = 0; i < buildingNames.length; i++) {
+        for (var i = 0; i < buildingNames.length; i++) {
             var bn = buildingNames[i];
-            var building = (bn == 'spaceStation')? this.game.space.getProgram(bn): this.game.bld.get(bn);
+            var building = (bn == 'spaceStation') ? this.game.space.getProgram(bn) : this.game.bld.get(bn);
             if (building.unlocked) {
                 unlockedBuildings.push({name: bn});
             }
@@ -266,7 +266,6 @@ var ks = {
         //console.log('craftRatio: ' + craftRatio);
 
 
-
         for (var i = 0; i < unlockedBuildings.length; i++) {
             var building = unlockedBuildings[i];
             var prices;
@@ -276,9 +275,9 @@ var ks = {
             building.efficiency = {};
 
             // calculate total steel cost for next building
-            if(building.name == 'spaceStation'){
+            if (building.name == 'spaceStation') {
                 // ugly hack to get price of next space station
-                var hackPrices = function(){
+                var hackPrices = function () {
                     var tmp = com.nuclearunicorn.game.ui.SpaceProgramBtn.prototype;
                     tmp.id = 'spaceStation';
                     tmp.game = ks.game;
@@ -310,7 +309,7 @@ var ks = {
                     totalSteelCost += price.val * steelProducts[price.name] / ratio;
                 }
 
-                if (price.name == 'blueprint'){
+                if (price.name == 'blueprint') {
                     building.cost.blueprint = price.val;
                 }
             }
@@ -352,10 +351,10 @@ var ks = {
             console.log('bonus: ' + building.bonus + '%');
 
             // % increase in base production per steel
-            building.efficiency.steel = building.bonus/building.cost.steel;
+            building.efficiency.steel = building.bonus / building.cost.steel;
             console.log('steel efficiency: ' + building.efficiency.steel);
 
-            if(building.cost.blueprint) {
+            if (building.cost.blueprint) {
                 building.efficiency.blueprint = building.bonus / building.cost.blueprint;
                 console.log('blueprint efficiency: ' + building.efficiency.blueprint);
             }
@@ -365,10 +364,10 @@ var ks = {
         var mostEfficientBuilding = {};
         var highestEfficiency = {steel: -Infinity, blueprint: -Infinity};
 
-        for( var k = 0; k < unlockedBuildings.length; k++){
+        for (var k = 0; k < unlockedBuildings.length; k++) {
             building = unlockedBuildings[k];
 
-            for(var res in highestEfficiency) {
+            for (var res in highestEfficiency) {
 
                 if (building.efficiency[res] > highestEfficiency[res] && highestEfficiency.hasOwnProperty(res)) {
                     highestEfficiency[res] = building.efficiency[res];
@@ -379,12 +378,64 @@ var ks = {
 
         console.log('best steel: ' + mostEfficientBuilding.steel.name);
 
-        if(building.cost.blueprint) {
+        if (building.cost.blueprint) {
             console.log('best blueprint: ' + mostEfficientBuilding.blueprint.name);
         }
 
         return mostEfficientBuilding;
     },
+
+    // my preferences for Kittens Scientists script
+    updateKittenScientistsOptions: function () {
+
+        // exit if Kitten Scientists is not loaded
+        if(!version || !version.includes('Kitten Scientists')){
+            return;
+        }
+
+
+        var myOpts = {
+            showActivity: false,
+            consume: 0.2,
+            auto: {
+                build: {
+                    items: {
+                        oilWell: {enabled: false},
+
+                    },
+                },
+
+                resources: {
+                    catnip: {consume: .1},
+                    wood: {consume: .1},
+                    minerals: {consume: .1},
+                    parchment: {stock: 2500},
+                }
+            }
+        };
+
+
+        var scientistOpts = options;
+
+        var updateOpts = function(newOpts, oldOpts){
+
+            for(var opt in newOpts){
+                // ignore unknown options
+                if(oldOpts[opt]) {
+                    // recurse if suboptions, update option otherwise
+                    if (typeof newOpts[opt] == 'object') {
+                        updateOpts(newOpts[opt], oldOpts[opt]);
+                    } else {
+                        oldOpts[opt] = newOpts[opt];
+                    }
+                }
+            }
+        };
+
+        updateOpts(myOpts, scientistOpts);
+
+
+    }
 
 };
 
