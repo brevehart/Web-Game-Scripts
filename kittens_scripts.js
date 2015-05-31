@@ -342,10 +342,16 @@ var ks = {
                 case 'spaceStation':
                     building.bonus = this.game.space.getProgram('spaceStation').effects['maxKittens'];
                     break;
+                default:
+                    building.bonus = 0;
             }
 
-            console.log('bonus: ' + building.bonus);
+            //convert building bonus to %
+            building.bonus *= 100;
 
+            console.log('bonus: ' + building.bonus + '%');
+
+            // % increase in base production per steel
             building.efficiency.steel = building.bonus/building.cost.steel;
             console.log('steel efficiency: ' + building.efficiency.steel);
 
