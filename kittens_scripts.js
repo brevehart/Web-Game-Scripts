@@ -47,7 +47,7 @@ var ks = {
     betterFaithPrices: function () {
         com.nuclearunicorn.game.ui.ReligionBtn.prototype.simplePrices = false;
     },
-
+/*
     hideWorthless: function () {
 
         // toggle hidden status
@@ -100,43 +100,37 @@ var ks = {
             this.game.workshop.get(this.worthlessUpgrades[i]).worthless = true;
         }
     },
+*/
 
+    // fancy method, may not work
+    hideWorthless: function () {
 
-    /*
-     // fancy method, may not work
-     var hideWorthless2 = function(){
+        // toggle hidden status
+        this.game.workshop.hideWorthless = true;
 
-     // toggle hidden status
-     this.game.workshop.hideWorthless = true;
+        // add worthless property to corresponding upgrades
+        for (var i = 0; i < this.worthlessUpgrades.length; i++) {
+            this.game.workshop.get(this.worthlessUpgrades[i]).worthless = true;
+        }
 
-     // modify this.game's button function to hide certain upgrades
-     var bt = com.nuclearunicorn.game.ui.UpgradeButton.prototype;
+        // modify game's button function to hide certain upgrades
+        var bt = com.nuclearunicorn.game.ui.UpgradeButton.prototype;
 
-     bt.updateVisible = (function(){
-     var orig_fn = bt.updateVisible;
+        bt.updateVisible = (function () {
+            var orig_fn = bt.updateVisible;
 
-     return function(){
-     console.log(this.getUpgrade());
+            return function () {
+                // call original updateVisible function
+                orig_fn.apply(this, arguments);
 
-     // orginal updateVisible function
-     orig_fn.apply(this, arguments);
-
-     // added worthless toggle to hide some buttons
-     var worthless = upgrade.worthless || false;
-     if (worthless && this.game.workshop.hideWorthless){
-     this.setVisible(false);
-     }
-     }
-     }() );
-
-     // mark upgrades as worthless if they only benefit non-script users
-     var worthlessUpgrades = ['factoryAutomation', 'advancedAutomation', 'pneumaticPress', 'steelPlants'];
-
-     for(var i = 0; i < worthlessUpgrades.length; i++ ){
-     this.game.workshop.get(worthlessUpgrades[i]).worthless = true;
-     }
-     };
-     */
+                // add worthless toggle to hide some upgrade buttons
+                var worthless = this.getUpgrade().worthless || false;
+                if (worthless && this.game.workshop.hideWorthless) {
+                    this.setVisible(false);
+                }
+            }
+        })();
+    },
 
 
     /********************************************************************************/
@@ -187,24 +181,6 @@ var ks = {
 
         return resPairs;
     },
-
-    /////////////////////////////////////////////////
-    /* wood production comparison */
-    // this.game.bld.get('field').effects.catnipPerTickBase = 0;
-    // this.game.village.catnipPerKitten = 0;
-    // var startCatnip = new Date();
-    // this.game.resPool.get('wood').value = 0;
-    // var endCatnip;
-    // var counter = setInterval(function(){
-    // var woodValue = this.game.resPool.get('wood').value;
-    // if(woodValue > 1000){
-    // endCatnip = new Date();
-    // clearInterval(counter);
-    // }
-    // },
-    // 10
-    // );
-
 
     /* starchart (from observing celestial events) per tick estimator */
     starchartEstimator: function () {
@@ -389,10 +365,10 @@ var ks = {
     updateKittenScientistsOptions: function () {
 
         // exit if Kitten Scientists is not loaded
-        if(!(typeof version == 'string' )|| !version.includes('Kitten Scientists')){
+        if (!(typeof version == 'string' ) || !version.includes('Kitten Scientists')) {
+            console.log('Kitten Scientists is not loaded. Aborting...');
             return;
         }
-
 
         var myOpts = {
             showActivity: false,
@@ -414,27 +390,13 @@ var ks = {
             }
         };
 
-
         var scientistOpts = options;
+        //console.log(options);
 
-        var updateOpts = function(newOpts, oldOpts){
+        // merge myOpts into Kitten Scientists options recursively
+        $.extend(true, scientistOpts, myOpts);
 
-            for(var opt in newOpts){
-                // ignore unknown options
-                if(oldOpts[opt]) {
-                    // recurse if suboptions, update option otherwise
-                    if (typeof newOpts[opt] == 'object') {
-                        updateOpts(newOpts[opt], oldOpts[opt]);
-                    } else {
-                        oldOpts[opt] = newOpts[opt];
-                    }
-                }
-            }
-        };
-
-        updateOpts(myOpts, scientistOpts);
-
-
+        // known issues: doesn't update right panel display
     }
 
 };
