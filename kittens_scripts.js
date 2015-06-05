@@ -190,11 +190,13 @@ var ks = {
         var woodPerFarmer = woodCalc[1][1];
 
         var bestJob = woodPerWC > woodPerFarmer? 'woodcutter': 'farmer';
-        var ratio = woodPerWC / woodPerFarmer;
+        var factor = woodPerWC > woodPerFarmer? woodPerWC / woodPerFarmer: woodPerFarmer / woodPerWC;
 
-        var result = 'Wood production per woodcutter: ' + gamePage.getDisplayValue(woodPerWC);
-        result += '<br>Wood production per farmer: ' + gamePage.getDisplayValue(woodPerFarmer);
-        result += '<br><br>Best profession is <em>'+ bestJob + '</em> by a factor of ' +  ratio + '.';
+
+        var result = 'Normalized wood per woodcutter: ' + gamePage.getDisplayValue(woodPerWC);
+        result += '<br>Normalized wood per farmer (via refinement): ' + gamePage.getDisplayValue(woodPerFarmer);
+        result += '<br><br>Best profession is <em>'+ bestJob + '</em> by a factor of ' +  gamePage.getDisplayValue(factor) + '.';
+        result += '<br><br> (Note: values are normalized for paragon, happiness, magnetos, etc.  )';
 
         return result;
 
@@ -381,9 +383,41 @@ var ks = {
 
     steelCalcFormatted: function(){
 
+        var productionResult;
+        var housingResult;
+        var oilResult;
+
+
+
+        // check for housing
+        if(gamePage.bld.get('mansion').val < 1 && gamePage.space.getProgram('spaceStation').val < 1){
+            housingResult = 'Unlock mansions to use housing calculator.';
+        }
+
+        //check for oil
+        if(gamePage.bld.get('oilWell').val < 1 && (gamePage.bld.get('biolab').val < 1 || !gamePage.bld.get('biolab').effects.oilPerTick)){
+            oilResult = 'Unlock oil wells to use oil calculator.';
+        }
+
+
+
+
+        var result = ks.steelCalcFormattedProduction();
+
+        return result;
+
+    },
+
+    steelCalcFormattedProduction: function(){
+
+        // check for production buildings
+        if(!gamePage.bld.get('magneto').unlocked){
+            return 'Unlock magnetos to use production calculator.';
+        }
+
         var  productionCalc = ks.steelCalc('production');
 
-        var result = '';
+        var result = 'Best steel production building: ' + productionCalc.best.steel.name;
 
         return result;
 
