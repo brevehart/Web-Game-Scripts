@@ -182,6 +182,24 @@ var ks = {
         return resPairs;
     },
 
+
+    woodCalcFormatted: function(){
+
+        var  woodCalc = ks.woodCalc();
+        var woodPerWC = woodCalc[0][1];
+        var woodPerFarmer = woodCalc[1][1];
+
+        var bestJob = woodPerWC > woodPerFarmer? 'woodcutter': 'farmer';
+        var ratio = woodPerWC / woodPerFarmer;
+
+        var result = 'Wood production per woodcutter: ' + gamePage.getDisplayValue(woodPerWC);
+        result += '<br>Wood production per farmer: ' + gamePage.getDisplayValue(woodPerFarmer);
+        result += '<br><br>Best profession is <em>'+ bestJob + '</em> by a factor of ' +  ratio + '.';
+
+        return result;
+
+    },
+
     /* starchart (from observing celestial events) per tick estimator */
     starchartEstimator: function () {
 
@@ -358,7 +376,17 @@ var ks = {
             console.log('best blueprint: ' + mostEfficientBuilding.blueprint.name);
         }
 
-        return mostEfficientBuilding;
+        return {buildings: unlockedBuildings, best: mostEfficientBuilding};
+    },
+
+    steelCalcFormatted: function(){
+
+        var  productionCalc = ks.steelCalc('production');
+
+        var result = '';
+
+        return result;
+
     },
 
     // my preferences for Kittens Scientists script
@@ -461,6 +489,12 @@ var ks = {
             ks.calcs.addCalculator(calcContainer, 'unicornCalc', 'Unicorn structures', '<h5>(<a href="https://www.reddit.com/r/kittensgame/comments/2iungv/turning_the_sacrificing_of_unicorns_into_an_exact/" target="_blank">Based on spreadsheet by /u/yatima2975</a>)</h5>', ks.calcs.calculateUnicornBuild, 'unicornDetails', 'Calculation details');
             ks.calcs.addCalculator(calcContainer, 'buildingCalc', 'Building price calculator', ks.calcs.buildingCalculator());
             ks.calcs.addCalculator(calcContainer, 'mintCalc', 'Mint efficiency calculator', '', ks.calcs.mintCalculator);
+
+            // added calculators: steel/blueprints, woodcutters/farmers
+            ks.calcs.addCalculator(calcContainer, 'steelCalc', 'Steel/Blueprint efficiency calculator', '', ks.steelCalcFormatted);
+            ks.calcs.addCalculator(calcContainer, 'woodCalc', 'Woodcutters vs farmers efficiency calculator', '', ks.woodCalcFormatted);
+            // end added calcs
+
             ks.calcs.calculateBuildingPrice();
             ks.calcs.updateCalculators();
         },
@@ -823,3 +857,4 @@ var ks = {
 // run some functions
 ks.hideWorthless();
 ks.betterFaithPrices();
+ks.calcs.buildUI();
