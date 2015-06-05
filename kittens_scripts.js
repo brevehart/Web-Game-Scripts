@@ -397,6 +397,424 @@ var ks = {
         $.extend(true, scientistOpts, myOpts);
 
         // known issues: doesn't update right panel display
+    },
+
+
+
+    // adapted from Auto Kittens http://birdiesoft.dk/autokittens.php
+    calcs: {
+        game: gamePage,
+
+        buildUI: function () {
+            $('#headerLinks').append(' | <a onclick="ks.calcs.rebuildCalculatorUI();$(\'#kittenCalcs\').toggle();" href="#">Calculators</a>');
+
+
+            var calcContainer = document.createElement('div');
+            calcContainer.className = 'help';
+            calcContainer.id = 'kittenCalcs';
+            calcContainer.style.display = 'none';
+            calcContainer.style.overflowY = 'scroll';
+            $('#gamePageContainer').append(calcContainer);
+        },
+
+
+        prepareContainer: function (id) {
+            var result = $('#' + id);
+            result.html('<a style="top: 10px; right: 45px; position: absolute;" onclick="$(\'#' + id + '\').hide();" href="#"><div style="position: fixed;">close</div></a>');
+            return result
+        },
+
+
+        calculators: [],
+
+        // Calculator UI
+        //
+        addCalculator: function (container, id, title, contents, calc_func, sub_id, sub_title) {
+            if (sub_id) {
+                container.append('<h3 onclick="$(\'#' + id + '_container\').toggle();">' + title + ' (click to show/hide)</h3>');
+                if (calc_func) {
+                    ks.calcs.calculators.push([[id, sub_id], calc_func]);
+                }
+                container.append('<div id="' + id + '_container" style="display:none">' + contents + '<div id="' + id + '"></div><h4 onclick="$(\'#' + sub_id + '\').toggle();">' + sub_title + ' (click to show/hide)</h4><div id="' + sub_id + '" style="display:none"></div></div>');
+            } else {
+                container.append('<h3 onclick="$(\'#' + id + '\').toggle();">' + title + ' (click to show/hide)</h3>');
+                if (calc_func) {
+                    ks.calcs.calculators.push([[id], calc_func]);
+                }
+                container.append('<div id="' + id + '" style="display:none">' + contents + '</div>');
+            }
+        },
+
+        updateCalculators: function () {
+            for (var i in ks.calcs.calculators) {
+                var c = ks.calcs.calculators[i];
+                var contents = [].concat(c[1]());
+                for (var j in c[0]) {
+                    $('#' + c[0][j]).html(contents[j])
+                }
+            }
+        },
+
+        rebuildCalculatorUI: function () {
+            var calcContainer = ks.calcs.prepareContainer('kittenCalcs');
+            ks.calcs.calculators = [];
+            ks.calcs.addCalculator(calcContainer, 'unicornCalc', 'Unicorn structures', '<h5>(<a href="https://www.reddit.com/r/kittensgame/comments/2iungv/turning_the_sacrificing_of_unicorns_into_an_exact/" target="_blank">Based on spreadsheet by /u/yatima2975</a>)</h5>', ks.calcs.calculateUnicornBuild, 'unicornDetails', 'Calculation details');
+            ks.calcs.addCalculator(calcContainer, 'buildingCalc', 'Building price calculator', ks.calcs.buildingCalculator());
+            ks.calcs.addCalculator(calcContainer, 'mintCalc', 'Mint efficiency calculator', '', ks.calcs.mintCalculator);
+            ks.calcs.calculateBuildingPrice();
+            ks.calcs.updateCalculators();
+        },
+
+        // Unicorn calculator
+
+        getZiggurats: function () {
+            return gamePage.bld.get('ziggurat').val;
+        },
+
+        calculateUnicornBuild: function () {
+            if (gamePage.bld.get('unicornPasture').val == 0)
+                return 'You need at least one Unicorn Pasture to use this. Send off some hunters!';
+            var ziggurats = ks.calcs.getZiggurats();
+            if (ziggurats == 0)
+                return 'You need at least one Ziggurat to use this.';
+
+            var startUps = ks.calcs.calculateEffectiveUps();
+
+            var details = '';
+
+            var result = 'Base unicorn production per second: ' + gamePage.getDisplayValue(ks.calcs.calculateBaseUps());
+            result += '<br>Rift production per second (amortized): ' + gamePage.getDisplayValue(ks.calcs.calculateRiftUps());
+            result += '<br>Current effective unicorn production per second: ' + gamePage.getDisplayValue(startUps);
+
+            var buildings = ['Unicorn Pasture', 'Unicorn Tomb', 'Ivory Tower', 'Ivory Citadel', 'Sky Palace'];
+            var tears = ks.calcs.getTearPrices();
+            var ivory = ks.calcs.getIvoryPrices();
+            var increases = [0, 0, 0, 0, 0];
+            var best = 0, secondBest = 0;
+            for (var i = 0; i < 5; i++) {
+                extras = [0, 0, 0, 0, 0];
+                extras[i] = 1;
+                increases[i] = ks.calcs.calculateEffectiveUps(extras) - startUps;
+                if (tears[best] / increases[best] > tears[i] / increases[i]) {
+                    secondBest = best;
+                    best = i;
+                }
+                if (tears[secondBest] / increases[secondBest] > tears[i] / increases[i] && i != best || secondBest == best) {
+                    secondBest = i;
+                }
+                details += 'Unicorn/s increase with 1 more ' + buildings[i] + ': ' + gamePage.getDisplayValue(increases[i]);
+                if (i != 0) {
+                    details += '<br>Total unicorns needed: ' + gamePage.getDisplayValueExt(Math.ceil(tears[i] / ziggurats) * 2500);
+                    details += ' (' + gamePage.getDisplayValueExt(tears[i]) + ' tears, ' + Math.ceil(tears[i] / ziggurats) + ' sacrifice(s))';
+                    details += '<br>' + ks.calcs.checkUnicornReserves(tears[i], false, startUps, ivory[i])
+                } else {
+                    details += '<br>Total unicorns needed: ' + gamePage.getDisplayValueExt(tears[i] / ziggurats * 2500);
+                    details += '<br>' + ks.calcs.checkUnicornReserves(tears[i] / ziggurats * 2500, true, startUps, ivory[i])
+                }
+                details += '<br>Tears for 1 extra unicorn/s: ' + gamePage.getDisplayValueExt(tears[i] / increases[i]) + '<br><br>';
+            }
+
+            result += '<br><br>Best purchase is ' + buildings[best] + ', by a factor of ' + gamePage.getDisplayValue((tears[secondBest] / increases[secondBest]) / (tears[best] / increases[best]));
+            if (best != 0) {
+                result += '<br>' + ks.calcs.checkUnicornReserves(tears[best], false, startUps, ivory[best])
+            } else {
+                result += '<br>' + ks.calcs.checkUnicornReserves(tears[best] / ziggurats * 2500, true, startUps, ivory[best])
+            }
+
+            return [result, details];
+        },
+
+        checkUnicornReserves: function (resNumber, isPasture, currUps, ivoryNeeded) {
+            var unicornsLeft = 0;
+            if (!isPasture) {
+                var tearsLeft = resNumber - gamePage.resPool.get('tears').value;
+                unicornsLeft = 2500 * Math.ceil(tearsLeft / ks.calcs.getZiggurats());
+            } else {
+                unicornsLeft = resNumber;
+            }
+            unicornsLeft = unicornsLeft - gamePage.resPool.get('unicorns').value;
+            var ivoryLeft = ivoryNeeded - gamePage.resPool.get('ivory').value;
+            if (unicornsLeft > 0) {
+                return "You need " + gamePage.getDisplayValueExt(unicornsLeft) + " more unicorns to build this (approximately " + gamePage.toDisplaySeconds(unicornsLeft / currUps) + ").";
+            }
+            if (ivoryLeft > 0) {
+                return "You have enough unicorns, but need more ivory to build this.";
+            } else {
+                return "You have enough resources to build this now.";
+            }
+        },
+
+        getTearPrices: function () {
+            var result = [0, 0, 0, 0, 0];
+            var buildings = [gamePage.bld.get('unicornPasture'), gamePage.religion.getZU('unicornTomb'), gamePage.religion.getZU('ivoryTower'), gamePage.religion.getZU('ivoryCitadel'), gamePage.religion.getZU('skyPalace')];
+            for (var i = 0; i < 5; i++) {
+                for (var j = 0; j < buildings[i].prices.length; j++) {
+                    if (buildings[i].prices[j].name == 'unicorns') {
+                        result[i] = ks.calcs.calcPrice(buildings[i].prices[j].val, gamePage.bld.getPriceRatio(buildings[i].name), buildings[i].val) / 2500 * ks.calcs.getZiggurats();
+                    } else if (buildings[i].prices[j].name == 'tears') {
+                        result[i] = ks.calcs.calcPrice(buildings[i].prices[j].val, buildings[i].priceRatio, buildings[i].val);
+                    }
+                }
+            }
+            return result;
+        },
+
+        getIvoryPrices: function () {
+            var result = [0, 0, 0, 0, 0];
+            var buildings = [gamePage.bld.get('unicornPasture'), gamePage.religion.getZU('unicornTomb'), gamePage.religion.getZU('ivoryTower'), gamePage.religion.getZU('ivoryCitadel'), gamePage.religion.getZU('skyPalace')];
+            for (var i = 0; i < 5; i++) {
+                for (var j = 0; j < buildings[i].prices.length; j++) {
+                    if (buildings[i].prices[j].name == 'ivory') {
+                        result[i] = ks.calcs.calcPrice(buildings[i].prices[j].val, buildings[i].priceRatio, buildings[i].val);
+                    }
+                }
+            }
+            return result;
+        },
+
+        calcPrice: function (base, ratio, num) {
+            for (i = 0; i < num; i++) {
+                base *= ratio;
+            }
+            return base;
+        },
+
+        calculateBaseUps: function (extras) {
+            extras = extras || [];
+
+            var pastures = gamePage.bld.get('unicornPasture').val + (extras[0] || 0);
+            var baseUps = pastures * gamePage.bld.get('unicornPasture').effects['unicornsPerTickBase'] * gamePage.rate;
+
+            var tombs = gamePage.religion.getZU('unicornTomb').val + (extras[1] || 0);
+            var towers = gamePage.religion.getZU('ivoryTower').val + (extras[2] || 0);
+            var citadels = gamePage.religion.getZU('ivoryCitadel').val + (extras[3] || 0);
+            var palaces = gamePage.religion.getZU('skyPalace').val + (extras[4] || 0);
+            var tombEffect = gamePage.religion.getZU('unicornTomb').effects['unicornsRatio'];
+            var towerEffect = gamePage.religion.getZU('ivoryTower').effects['unicornsRatio'];
+            var citadelEffect = gamePage.religion.getZU('ivoryCitadel').effects['unicornsRatio'];
+            var palaceEffect = gamePage.religion.getZU('skyPalace').effects['unicornsRatio'];
+            var bldEffect = 1 + tombEffect * tombs + towerEffect * towers + citadelEffect * citadels + palaceEffect * palaces;
+
+            var faithEffect = 1;
+            if (gamePage.religion.getRU("solarRevolution").researched) {
+                faithEffect += gamePage.religion.getProductionBonus() / 100;
+            }
+
+            var paragonRatio = gamePage.resPool.get("paragon").value * 0.01;
+            paragonRatio = 1 + gamePage.bld.getHyperbolicEffect(paragonRatio, 2);
+
+            return baseUps * bldEffect * faithEffect * paragonRatio;
+        },
+
+        calculateRiftUps: function (extras) {
+            extras = extras || [];
+            var unicornChanceRatio = 1;
+            if (gamePage.prestige.getPerk("unicornmancy").researched) {
+                unicornChanceRatio = 1.1;
+            }
+            return Math.min(500, 0.25 * unicornChanceRatio * (gamePage.religion.getZU('ivoryTower').val + (extras[2] || 0))) * gamePage.calendar.dayPerTick * gamePage.rate;
+        },
+
+        calculateEffectiveUps: function (extras) {
+            return ks.calcs.calculateBaseUps(extras) + ks.calcs.calculateRiftUps(extras);
+        },
+
+        // Building price calculator
+
+        buildingCalculator: function () {
+            var result = '';
+
+            result += '<select id="buildingPriceSelector" onchange="ks.calcs.calculateBuildingPrice()">';
+            result += '<optgroup label="Buildings">';
+            var buildings = gamePage.bld.buildingsData.slice(0);
+            buildings.sort(function (a, b) {
+                return a.label.localeCompare(b.label)
+            });
+            for (var i = 0; i < buildings.length; i++) {
+                if (buildings[i].unlocked) {
+                    result += '<option value="bld_' + buildings[i].name + '">' + buildings[i].label + '</option>';
+                }
+            }
+            if (gamePage.religionTab.visible) {
+                result += '</optgroup><optgroup label="Religion">';
+                var religion = gamePage.religion.religionUpgrades.slice(0);
+                religion.sort(function (a, b) {
+                    return a.label.localeCompare(b.label)
+                });
+                for (var i = 0; i < religion.length; i++) {
+                    if (gamePage.religion.faith >= religion[i].faith && religion[i].upgradable) {
+                        result += '<option value="RU_' + religion[i].name + '">' + religion[i].label + '</option>';
+                    }
+                }
+            }
+            if (gamePage.bld.get('ziggurat').val > 0) {
+                result += '</optgroup><optgroup label="Ziggurats">';
+                var religion = gamePage.religion.zigguratUpgrades.slice(0);
+                religion.sort(function (a, b) {
+                    return a.label.localeCompare(b.label)
+                });
+                for (var i = 0; i < religion.length; i++) {
+                    result += '<option value="ZU_' + religion[i].name + '">' + religion[i].label + '</option>';
+                }
+            }
+            if (gamePage.spaceTab.visible) {
+                result += '</optgroup><optgroup label="Space">';
+                var space = gamePage.space.programs.slice(0);
+                space.sort(function (a, b) {
+                    return a.title.localeCompare(b.title)
+                });
+                for (var i = 0; i < space.length; i++) {
+                    if (space[i].unlocked && space[i].upgradable) {
+                        result += '<option value="space_' + space[i].name + '">' + space[i].title + '</option>';
+                    }
+                }
+            }
+            result += '</optgroup></select><br><label>Target number of buildings: <input id="buildingPriceNumber" oninput="ks.calcs.calculateBuildingPrice();"></label>';
+
+            result += '<div id="buildingPriceHolder"></div>';
+            return result;
+        },
+
+        calculateBuildingPrice: function () {
+            var priceContainer = document.getElementById('buildingPriceHolder');
+            var bldName = $('#buildingPriceSelector')[0].value.split('_');
+            var bld;
+            var priceRatio = 1;
+            switch (bldName[0]) {
+                case 'bld':
+                    bld = gamePage.bld.get(bldName[1]);
+                    priceRatio = gamePage.bld.getPriceRatio(bldName[1]);
+                    break;
+                case 'RU':
+                    bld = gamePage.religion.getRU(bldName[1]);
+                    priceRatio = bld.priceRatio;
+                    break;
+                case 'ZU':
+                    bld = gamePage.religion.getZU(bldName[1]);
+                    priceRatio = bld.priceRatio;
+                    break;
+                case 'space':
+                    bld = gamePage.space.getProgram(bldName[1]);
+                    priceRatio = bld.priceRatio;
+                    break;
+            }
+            var number = Math.floor(ks.calcs.tryNumericParse($('#buildingPriceNumber')[0].value));
+            var maxNum = Infinity;
+            for (var i = 0; i < bld.prices.length; i++) {
+                var resLimit = bld.val;
+                var res = gamePage.resPool.get(bld.prices[i].name);
+                if ((res.maxValue || 0) == 0)
+                    continue;
+                if (bldName[0] == 'space' && (bld.prices[i].name == "oil" || bld.prices[i].name == "rocket")) {
+                    var reductionRatio = 0;
+                    if (bld.prices[i].name == "oil")
+                        reductionRatio = gamePage.bld.getHyperbolicEffect(gamePage.space.getEffect("oilReductionRatio"), 0.75);
+                    if (res.maxValue > bld.prices[i].val * (1 - reductionRatio))
+                        resLimit = maxNum;
+                    else
+                        resLimit = 0;
+                } else for (var j = bld.val; ; j++) {
+                    if (ks.calcs.calcPrice(bld.prices[i].val, priceRatio, j) > res.maxValue) {
+                        resLimit = j;
+                        break;
+                    }
+                }
+                if (resLimit < maxNum)
+                    maxNum = resLimit;
+            }
+
+            var result = '';
+            if (maxNum != Infinity)
+                result += 'With your current resource caps, you can build up to ' + maxNum + ' of this building (' + (maxNum - bld.val) + ' more than you currently have).<br>';
+            if (number > 0) {
+                result += 'Price for ' + (bld.label || bld.title) + ' #' + number + ' will be:<br>';
+                for (var i = 0; i < bld.prices.length; i++) {
+                    var finalPrice;
+                    if (bldName[0] == 'space' && (bld.prices[i].name == "oil" || bld.prices[i].name == "rocket")) {
+                        var reductionRatio = 0;
+                        if (bld.prices[i].name == "oil")
+                            reductionRatio = gamePage.bld.getHyperbolicEffect(gamePage.space.getEffect("oilReductionRatio"), 0.75);
+                        finalPrice = bld.prices[i].val * (1 - reductionRatio);
+                    }
+                    else
+                        finalPrice = ks.calcs.calcPrice(bld.prices[i].val, priceRatio, number - 1);
+                    var res = gamePage.resPool.get(bld.prices[i].name);
+                    result += (res.title || res.name) + ': ' + gamePage.getDisplayValueExt(finalPrice) + '<br>';
+                }
+
+                if (bld.val < number) {
+                    result += '<br>Cumulative resources required to reach this:<br>';
+                    for (var i = 0; i < bld.prices.length; i++) {
+                        var price = 0;
+                        if (bldName[0] == 'space' && (bld.prices[i].name == "oil" || bld.prices[i].name == "rocket")) {
+                            var reductionRatio = 0;
+                            if (bld.prices[i].name == "oil")
+                                reductionRatio = gamePage.bld.getHyperbolicEffect(gamePage.space.getEffect("oilReductionRatio"), 0.75);
+                            price = bld.prices[i].val * (1 - reductionRatio) * (number - bld.val);
+                        }
+                        else for (var j = bld.val; j < number; j++) {
+                            price += ks.calcs.calcPrice(bld.prices[i].val, priceRatio, j);
+                        }
+                        var res = gamePage.resPool.get(bld.prices[i].name);
+                        result += (res.title || res.name) + ': ' + gamePage.getDisplayValueExt(price) + '<br>';
+                    }
+                }
+            }
+
+            priceContainer.innerHTML = result;
+        },
+
+        // Mint/hunter efficiency calculator
+
+        mintCalculator: function () {
+            var hunterRatio = gamePage.workshop.getEffect("hunterRatio");
+            var expectedFurs = 32.5 * (hunterRatio + 1);
+            var expectedIvory = 20 * (hunterRatio + 1);
+            if (2 * hunterRatio < 55) {
+                expectedIvory *= 1 - (55 - 2 * hunterRatio) / 100;
+            }
+
+            var catpower = gamePage.resPool.get("manpower");
+            var catpowerRate = catpower.perTickUI * 5;
+            var huntTime = 100 / catpowerRate;
+            var huntTimeWithMint = 100 / (catpowerRate - 3.75);
+            var fpsNormal = expectedFurs / huntTime;
+            var ipsNormal = expectedIvory / huntTime;
+            var fpsWithMint = expectedFurs / huntTimeWithMint;
+            var ipsWithMint = expectedIvory / huntTimeWithMint;
+
+            var cpratio = (catpower.maxValue * gamePage.bld.get("mint").effects["mintEffect"]) / 100;
+
+            var fpsFromMint = cpratio * 1.25 * 5;
+            var ipsFromMint = cpratio * 0.3 * 5;
+
+            var mintsRunning = gamePage.bld.get('mint').on;
+            fpsNormal += fpsFromMint * mintsRunning;
+            ipsNormal += ipsFromMint * mintsRunning;
+            fpsWithMint += fpsFromMint * mintsRunning;
+            ipsWithMint += ipsFromMint * mintsRunning;
+
+            var result = "";
+
+            result += "Average furs per hunt: " + gamePage.getDisplayValue(expectedFurs);
+            result += "<br>Average ivory per hunt: " + gamePage.getDisplayValue(expectedIvory);
+            result += "<br>Average time between hunts: " + gamePage.getDisplayValue(huntTime);
+            result += "<br>Approximate furs per second: " + gamePage.getDisplayValue(fpsNormal);
+            result += "<br>Approximate ivory per second: " + gamePage.getDisplayValue(ipsNormal);
+            result += "<br><br>With extra mint running:<br>Approximate furs per second: " + gamePage.getDisplayValue(fpsWithMint + fpsFromMint);
+            result += "<br>Approximate ivory per second: " + gamePage.getDisplayValue(ipsWithMint + ipsFromMint);
+            result += "<br><br>Profit from extra mint:<br>Furs per second: " + gamePage.getDisplayValue(fpsFromMint + fpsWithMint - fpsNormal);
+            result += "<br>Ivory per second: " + gamePage.getDisplayValue(ipsFromMint + ipsWithMint - ipsNormal);
+            return result;
+        },
+
+        tryNumericParse: function (value) {
+            newVal = parseFloat(value);
+            if (!isNaN(newVal) && isFinite(newVal) && newVal > 0)
+                return newVal;
+            return 0;
+        },
+
     }
 
 };
