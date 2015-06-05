@@ -196,7 +196,7 @@ var ks = {
         var result = 'Normalized wood per woodcutter: ' + gamePage.getDisplayValue(woodPerWC);
         result += '<br>Normalized wood per farmer (via refinement): ' + gamePage.getDisplayValue(woodPerFarmer);
         result += '<br><br>Best profession is <em>'+ bestJob + '</em> by a factor of ' +  gamePage.getDisplayValue(factor) + '.';
-        result += '<br><br> (Note: values are normalized for paragon, happiness, magnetos, etc.  )';
+        result += '<br><br> Note: values are normalized for shared boosts (paragon, happiness, magnetos, etc.).';
 
         return result;
 
@@ -417,10 +417,47 @@ var ks = {
 
         var  productionCalc = ks.steelCalc('production');
 
-        var result = 'Best steel production building: ' + productionCalc.best.steel.name;
+        var result = 'Best production building by steel cost: ' + productionCalc.best.steel.name;
+        result += '<br>Best production building by blueprint cost: ' + productionCalc.best.blueprint.name;
+        result += '<br><br>Efficiency by steel:';
+
+        // sort buildings by efficiency
+        var steelSorted = productionCalc.buildings.slice();
+        steelSorted.sort(ks.sortBy('efficiency.steel'));
+
+        for(var i = 0; i < steelSorted.length; i ++ ){
+            result += '<br>' + steelSorted[i].name + ': ' + gamePage.getDisplayValue(steelSorted[i].efficiency.steel);
+        }
+
+        result += '<br><br>Efficiency by blueprints:';
+        var bpSorted = productionCalc.buildings.slice();
+        bpSorted.sort(ks.sortBy('efficiency.blueprint'));
+
+        for(var i = 0; i < steelSorted.length; i ++ ){
+            result += '<br>' + bpSorted[i].name + ': ' + gamePage.getDisplayValue(bpSorted[i].efficiency.steel);
+        }
 
         return result;
 
+    },
+
+    // sort (in ascending order) an array of objects by specified property
+    sortBy: function(prop){
+      return function(a, b){
+          return ks.deep_value(a, prop) - ks.deep_value(b, prop);
+      };
+    },
+
+    // get nested value from path (e.g., 'prop1.prop2') from http://stackoverflow.com/questions/6491463/accessing-nested-javascript-objects-with-string-key
+    deep_value: function(obj, path){
+        for (var i=0, path=path.split('.'); i<path.length; i++){
+            if(obj[path[i]] == undefined){
+                return undefined;
+            } else {
+                obj = obj[path[i]];
+            }
+        }
+        return obj;
     },
 
     // my preferences for Kittens Scientists script
@@ -434,11 +471,12 @@ var ks = {
 
         var myOpts = {
             showActivity: false,
-            consume: 0.2,
+            consume: 0.4,
             auto: {
                 build: {
                     items: {
                         oilWell: {enabled: false},
+                        aqueduct: {enabled: false},
 
                     },
                 },
