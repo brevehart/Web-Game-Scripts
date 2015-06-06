@@ -47,60 +47,60 @@ var ks = {
     betterFaithPrices: function () {
         com.nuclearunicorn.game.ui.ReligionBtn.prototype.simplePrices = false;
     },
-/*
-    hideWorthless: function () {
+    /*
+     hideWorthless: function () {
 
-        // toggle hidden status
-        this.game.workshop.hideWorthless = true;
+     // toggle hidden status
+     this.game.workshop.hideWorthless = true;
 
-        // modify this.game's button function to hide certain upgrades
-        var bt = com.nuclearunicorn.game.ui.UpgradeButton.prototype;
+     // modify this.game's button function to hide certain upgrades
+     var bt = com.nuclearunicorn.game.ui.UpgradeButton.prototype;
 
-        bt.updateVisible = (function () {
-            var orig_fn = bt.updateVisible;
+     bt.updateVisible = (function () {
+     var orig_fn = bt.updateVisible;
 
-            return function () {
-                console.log(this.getUpgrade());
+     return function () {
+     console.log(this.getUpgrade());
 
-                // orginal updateVisible function
-                orig_fn.apply(this, arguments);
+     // orginal updateVisible function
+     orig_fn.apply(this, arguments);
 
-                // added worthless toggle to hide some buttons
-                var worthless = upgrade.worthless || false;
-                if (worthless && this.game.workshop.hideWorthless) {
-                    this.setVisible(false);
-                }
-            }
-        });
+     // added worthless toggle to hide some buttons
+     var worthless = upgrade.worthless || false;
+     if (worthless && this.game.workshop.hideWorthless) {
+     this.setVisible(false);
+     }
+     }
+     });
 
-        com.nuclearunicorn.game.ui.UpgradeButton.prototype.updateVisible = function () {
-            var upgrade = this.getUpgrade();
+     com.nuclearunicorn.game.ui.UpgradeButton.prototype.updateVisible = function () {
+     var upgrade = this.getUpgrade();
 
-            var worthless = upgrade.worthless || false; // added
+     var worthless = upgrade.worthless || false; // added
 
-            if (!upgrade.unlocked) {
-                this.setVisible(false);
-            } else {
-                this.setVisible(true);
-            }
+     if (!upgrade.unlocked) {
+     this.setVisible(false);
+     } else {
+     this.setVisible(true);
+     }
 
-            //noinspection JSPotentiallyInvalidUsageOfThis
-            if (upgrade.researched && this.game.workshop.hideResearched) {
-                this.setVisible(false);
-            }
+     //noinspection JSPotentiallyInvalidUsageOfThis
+     if (upgrade.researched && this.game.workshop.hideResearched) {
+     this.setVisible(false);
+     }
 
-            //noinspection JSPotentiallyInvalidUsageOfThis
-            if (worthless && this.game.workshop.hideWorthless) { // addded
-                this.setVisible(false);
-            }
-        };
+     //noinspection JSPotentiallyInvalidUsageOfThis
+     if (worthless && this.game.workshop.hideWorthless) { // addded
+     this.setVisible(false);
+     }
+     };
 
 
-        for (var i = 0; i < this.worthlessUpgrades.length; i++) {
-            this.game.workshop.get(this.worthlessUpgrades[i]).worthless = true;
-        }
-    },
-*/
+     for (var i = 0; i < this.worthlessUpgrades.length; i++) {
+     this.game.workshop.get(this.worthlessUpgrades[i]).worthless = true;
+     }
+     },
+     */
 
     // fancy method, may not work
     hideWorthless: function () {
@@ -132,6 +132,57 @@ var ks = {
         })();
     },
 
+    highlightBest: function () {
+        var isBest = (this.getName().includes(ks.bestValue));
+        var isSecondBest = (this.getName().includes(ks.secondBestValue));
+
+        if(!this.buttonTitle){
+            return;
+        }
+
+        if (isBest) {
+            if (!this.buttonTitle.classList.contains('bestValue')) {
+                this.buttonTitle.classList.add('bestValue');
+            }
+        } else if(isSecondBest){
+            if (!this.buttonTitle.classList.contains('secondBestValue')) {
+                this.buttonTitle.classList.add('secondBestValue');
+            }
+        } else    if (this.buttonTitle.classList.contains('bestValue')) {
+            // code here never executes
+            this.buttonTitle.classList.remove('bestValue');
+
+        }
+
+        //$('.bestValue').css('background-color', 'lightBlue');
+
+    },
+
+    showBestValue: function(){
+      var bt = com.nuclearunicorn.game.ui.BuildingBtn.prototype;
+
+
+
+        bt.update = (function(){
+            var origUpdate = bt.update;
+
+            return function(){
+                origUpdate.apply(this, arguments);
+                ks.calcs.calculateUnicornBuild();
+                ks.highlightBest.apply(this, arguments);
+            }
+        })();
+
+        // add css rule for new class
+        var css = document.createElement("style");
+        css.type = "text/css";
+        css.innerHTML = ".bestValue { color: lightGreen }\n.secondBestValue { color: green }";
+        document.getElementsByTagName("head")[0].appendChild(css);
+
+    },
+
+    bestValue: null,
+    secondBestValue: null,
 
     /********************************************************************************/
     // wood vs catnip refining calculator
@@ -183,19 +234,19 @@ var ks = {
     },
 
 
-    woodCalcFormatted: function(){
+    woodCalcFormatted: function () {
 
-        var  woodCalc = ks.woodCalc();
+        var woodCalc = ks.woodCalc();
         var woodPerWC = woodCalc[0][1];
         var woodPerFarmer = woodCalc[1][1];
 
-        var bestJob = woodPerWC > woodPerFarmer? 'woodcutter': 'farmer';
-        var factor = woodPerWC > woodPerFarmer? woodPerWC / woodPerFarmer: woodPerFarmer / woodPerWC;
+        var bestJob = woodPerWC > woodPerFarmer ? 'woodcutter' : 'farmer';
+        var factor = woodPerWC > woodPerFarmer ? woodPerWC / woodPerFarmer : woodPerFarmer / woodPerWC;
 
 
         var result = 'Normalized wood per woodcutter: ' + gamePage.getDisplayValue(woodPerWC);
         result += '<br>Normalized wood per farmer (via refinement): ' + gamePage.getDisplayValue(woodPerFarmer);
-        result += '<br><br>Best profession is <em>'+ bestJob + '</em> by a factor of ' +  gamePage.getDisplayValue(factor) + '.';
+        result += '<br><br>Best profession is <em>' + bestJob + '</em> by a factor of ' + gamePage.getDisplayValue(factor) + '.';
         result += '<br><br> Note: values are normalized for shared boosts (paragon, happiness, magnetos, etc.).';
 
         return result;
@@ -381,25 +432,22 @@ var ks = {
         return {buildings: unlockedBuildings, best: mostEfficientBuilding};
     },
 
-    steelCalcFormatted: function(){
+    steelCalcFormatted: function () {
 
         var productionResult;
         var housingResult;
         var oilResult;
 
 
-
         // check for housing
-        if(gamePage.bld.get('mansion').val < 1 && gamePage.space.getProgram('spaceStation').val < 1){
+        if (gamePage.bld.get('mansion').val < 1 && gamePage.space.getProgram('spaceStation').val < 1) {
             housingResult = 'Unlock mansions to use housing calculator.';
         }
 
         //check for oil
-        if(gamePage.bld.get('oilWell').val < 1 && (gamePage.bld.get('biolab').val < 1 || !gamePage.bld.get('biolab').effects.oilPerTick)){
+        if (gamePage.bld.get('oilWell').val < 1 && (gamePage.bld.get('biolab').val < 1 || !gamePage.bld.get('biolab').effects.oilPerTick)) {
             oilResult = 'Unlock oil wells to use oil calculator.';
         }
-
-
 
 
         var result = ks.steelCalcFormattedProduction();
@@ -408,14 +456,14 @@ var ks = {
 
     },
 
-    steelCalcFormattedProduction: function(){
+    steelCalcFormattedProduction: function () {
 
         // check for production buildings
-        if(!gamePage.bld.get('magneto').unlocked){
+        if (!gamePage.bld.get('magneto').unlocked) {
             return 'Unlock magnetos to use production calculator.';
         }
 
-        var  productionCalc = ks.steelCalc('production');
+        var productionCalc = ks.steelCalc('production');
 
         var result = 'Best production building by steel cost: ' + productionCalc.best.steel.name;
         result += '<br>Best production building by blueprint cost: ' + productionCalc.best.blueprint.name;
@@ -425,7 +473,7 @@ var ks = {
         var steelSorted = productionCalc.buildings.slice();
         steelSorted.sort(ks.sortBy('efficiency.steel'));
 
-        for(var i = 0; i < steelSorted.length; i ++ ){
+        for (var i = 0; i < steelSorted.length; i++) {
             result += '<br>' + steelSorted[i].name + ': ' + gamePage.getDisplayValue(steelSorted[i].efficiency.steel);
         }
 
@@ -433,7 +481,7 @@ var ks = {
         var bpSorted = productionCalc.buildings.slice();
         bpSorted.sort(ks.sortBy('efficiency.blueprint'));
 
-        for(var i = 0; i < steelSorted.length; i ++ ){
+        for (var i = 0; i < steelSorted.length; i++) {
             result += '<br>' + bpSorted[i].name + ': ' + gamePage.getDisplayValue(bpSorted[i].efficiency.steel);
         }
 
@@ -442,16 +490,16 @@ var ks = {
     },
 
     // sort (in ascending order) an array of objects by specified property
-    sortBy: function(prop){
-      return function(a, b){
-          return ks.deep_value(a, prop) - ks.deep_value(b, prop);
-      };
+    sortBy: function (prop) {
+        return function (a, b) {
+            return ks.deep_value(a, prop) - ks.deep_value(b, prop);
+        };
     },
 
     // get nested value from path (e.g., 'prop1.prop2') from http://stackoverflow.com/questions/6491463/accessing-nested-javascript-objects-with-string-key
-    deep_value: function(obj, path){
-        for (var i=0, path=path.split('.'); i<path.length; i++){
-            if(obj[path[i]] == undefined){
+    deep_value: function (obj, path) {
+        for (var i = 0, path = path.split('.'); i < path.length; i++) {
+            if (obj[path[i]] == undefined) {
                 return undefined;
             } else {
                 obj = obj[path[i]];
@@ -498,7 +546,6 @@ var ks = {
 
         // known issues: doesn't update right panel display
     },
-
 
 
     // adapted from Auto Kittens http://birdiesoft.dk/autokittens.php
@@ -626,6 +673,9 @@ var ks = {
             } else {
                 result += '<br>' + ks.calcs.checkUnicornReserves(tears[best] / ziggurats * 2500, true, startUps, ivory[best])
             }
+
+            ks.bestValue = buildings[best];
+            ks.secondBestValue = buildings[secondBest];
 
             return [result, details];
         },
@@ -930,3 +980,4 @@ var ks = {
 ks.hideWorthless();
 ks.betterFaithPrices();
 ks.calcs.buildUI();
+ks.showBestValue();
