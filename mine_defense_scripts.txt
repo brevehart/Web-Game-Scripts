@@ -18,7 +18,7 @@ var mageBuffer = setInterval(
 );
 
 var autodelver = setInterval(function(){
-  var magesToFight = 500;
+  var magesToFight = 1000000;
   
   var extraMages = Math.max(0, MD.MAGES_FIGHTING - magesToFight);
   MD.MAGES_DELVING += extraMages;
