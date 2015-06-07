@@ -674,8 +674,8 @@ var ks = {
                 result += '<br>' + ks.calcs.checkUnicornReserves(tears[best] / ziggurats * 2500, true, startUps, ivory[best])
             }
 
-            ks.bestValue = buildings[best];
-            ks.secondBestValue = buildings[secondBest];
+            ks.bestValue = (buildings[best] == 'Unicorn Pasture')? 'Unic. Pasture': buildings[best];
+            ks.secondBestValue = (buildings[secondBest] == 'Unicorn Pasture')? 'Unic. Pasture': buildings[secondBest];
 
             return [result, details];
         },
