@@ -8,12 +8,66 @@
 //noinspection JSUnusedGlobalSymbols
 var ks = {
     game: gamePage,
-
+	options: {
+		suppressHuntingMessages: true,
+		suppressTradingMessages: true,
+		ignoreReactor: true,
+	},
 
     // mark upgrades as worthless if they only benefit non-script users
     worthlessUpgrades: ['factoryAutomation', 'advancedAutomation', 'pneumaticPress', 'steelPlants', 'barges'],
 
 
+	// allow suppression of trading/hunting messages when using Kitten Scientists
+	suppressMessages: function(){
+		// trading
+		TradeManager.prototype.trade = (function(){
+			var oldTrade = TradeManager.prototype.trade;
+			
+			return function(){
+			
+				// suppress trading messages
+				var msgFn = gamePage.msg;
+				if(ks.options.suppressTradingMessages){
+					gamePage.msg = function() {};
+				}
+				
+				var result = oldTrade.apply(this, arguments);
+				
+				if(ks.options.suppressTradingMessages){
+					gamePage.msg = msgFn;
+				}
+				
+				return result;
+			};
+			
+		})();
+
+		// hunting
+		Engine.prototype.hunt = (function(){
+			var oldHunt = Engine.prototype.hunt;
+			
+			return function(){
+			
+				// suppress hunting messages
+				var msgFn = gamePage.msg;
+				if(ks.options.suppressHuntingMessages){
+					gamePage.msg = function() {};
+				}
+				
+				var result = oldHunt.apply(this, arguments);
+				
+				if(ks.options.suppressHuntingMessages){
+					gamePage.msg = msgFn;
+				}
+				
+				return result;
+			};
+			
+		})();
+
+	},
+	
     calcKarma: function () {
         //noinspection JSUnresolvedVariable,JSUnresolvedFunction
         var kittens = this.game.resPool.get('kittens').value;
@@ -274,10 +328,16 @@ var ks = {
     steelCalc: function (res) {
 
         var allBuildingNames = {
-            production: ['steamworks', 'magneto', 'reactor'],
+            production: ['steamworks', 'magneto'], 
             oil: ['oilWell', 'biolab'],
             kittens: ['mansion', 'spaceStation']
         };
+		
+		// ignore reactor since it's limited by titanium storage cap, 
+		// option to include reactor in production buildings anyway
+		if(!ks.options.ignoreReactor){
+			allBuildingNames.production.push('reactor');
+		}
 
         //
         var buildingNames = allBuildingNames[res];
@@ -674,6 +734,7 @@ var ks = {
                 result += '<br>' + ks.calcs.checkUnicornReserves(tears[best] / ziggurats * 2500, true, startUps, ivory[best])
             }
 
+            // store two best buildings and rename unicorn pastures to button value
             ks.bestValue = (buildings[best] == 'Unicorn Pasture')? 'Unic. Pasture': buildings[best];
             ks.secondBestValue = (buildings[secondBest] == 'Unicorn Pasture')? 'Unic. Pasture': buildings[secondBest];
 
@@ -981,3 +1042,4 @@ ks.hideWorthless();
 ks.betterFaithPrices();
 ks.calcs.buildUI();
 ks.showBestValue();
+ks.suppressMessages();
