@@ -28,3 +28,56 @@ BeachBall.ClickBeach = function (number) {
 };
 
 BeachBall.optimizeFurnaceSand = true;
+
+
+// pope autoclicker
+var popeclicker = setInterval(function(){
+		var popeBoost = 'GlassSaw';
+		var pope = Molpy.Boosts['The Pope'];
+		// check that no pope boost is currently set and the desired boost is available
+		if(!pope.power && Molpy.PapalDecrees[popeBoost].avail()){
+			console.log('Setting Pope Boost to "'+popeBoost+'".');
+			Molpy.SelectPapalDecree(popeBoost);
+		}
+	}
+	, Molpy.NPlength * 1000 // run once per NP
+);
+
+// locked vault/key buyer
+var vaultbuyer = setInterval(
+	function(){
+		var items = ['Locked Vault', 'Vault Key'];
+		
+		for (var i in items){
+			var item = Molpy.Boosts[items[i]];
+			// check whether vault is buyable
+			if(item.bought < item.unlocked){
+				// get sand and castles to buy the boost, even if unnecessary
+				// use BeachBall.ClickBeach to ensure clicking is 'safe'
+				BeachBall.ClickBeach(); 
+				item.buy();
+			}
+		}
+		
+		
+	},
+	3*1000
+);
+
+var autoClicker = function(clicksPerTick, tickLength){
+  var cheated = false;
+  var intoTheAbyss = function(){
+    if(!cheated){
+      cheated = true;
+      for(var i = 0; i < clicksPerTick; i++){
+		  // autoclick action
+        //MD.dig();
+		BeachBall.ClickBeach();
+      };
+    cheated = false;
+    };
+  };
+  return setInterval(intoTheAbyss, tickLength);
+};
+
+var beachAutoClicker = autoClicker(100, 5*1000);
