@@ -387,14 +387,13 @@ var ks = {
             if (building.name == 'spaceStation') {
                 // ugly hack to get price of next space station
                 var hackPrices = function () {
-                    var tmp = com.nuclearunicorn.game.ui.SpaceProgramBtn.prototype;
+                    var tmp = dojo.clone(com.nuclearunicorn.game.ui.SpaceProgramBtn.prototype);
                     tmp.id = 'spaceStation';
                     tmp.game = ks.game;
 
                     var prices = tmp.getPrices();
 
-                    delete tmp.game;
-                    delete tmp.id;
+                    delete tmp;
 
                     return prices;
                 };
