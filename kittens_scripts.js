@@ -3,7 +3,9 @@
 // add some additional features to Kittens Game
 // bookmarklet:::
 // javascript:(function(){var d=document,s=d.createElement('script');s.src='https://rawgit.com/brevehart/Web-Game-Scripts/kittens-updates/kittens_scripts.js';d.body.appendChild(s);})();
-
+// local bookmarklet:::
+// javascript:(function(){var d=document,s=d.createElement('script');s.src='D:/Documents/Web Games/Scripts/kittens_scripts.js';d.body.appendChild(s);})();
+//
 
 //noinspection JSUnusedGlobalSymbols
 var ks = {
@@ -401,7 +403,7 @@ var ks = {
             } else {
                 prices = this.game.bld.getPrices(building.name);
             }
-            console.log('prices for ' + building.name + ': ');
+            //console.log('prices for ' + building.name + ': ');
             //console.log(prices);
 
             totalSteelCost = 0;
@@ -524,7 +526,7 @@ var ks = {
 
         var productionCalc = ks.steelCalc(type);
 
-        var requiresBlueprints = productionCalc.buildings.best.blueprint? true: false;
+        var requiresBlueprints = productionCalc.best.blueprint? true: false;
 
         var result = 'Best ' +type + ' building by steel cost: ' + productionCalc.best.steel.name;
         if(requiresBlueprints) {
@@ -532,22 +534,22 @@ var ks = {
         }
 
         // sort buildings by steel efficiency
-        result += '<br><br>Efficiency by steel:';
+        result += '<br><br>Inverse efficiency by steel:';
         var steelSorted = productionCalc.buildings.slice();
         steelSorted.sort(ks.sortBy('efficiency.steel'));
 
         for (var i = 0; i < steelSorted.length; i++) {
-            result += '<br>' + steelSorted[i].name + ': ' + gamePage.getDisplayValue(steelSorted[i].efficiency.steel);
+            result += '<br>' + steelSorted[i].name + ': ' + gamePage.getDisplayValue(1/steelSorted[i].efficiency.steel);
         }
 
         // sort buildings by blueprint efficiency, if applicable
         if(requiresBlueprints) {
-            result += '<br><br>Efficiency by blueprints:';
+            result += '<br><br>Inverse efficiency by blueprints:';
             var bpSorted = productionCalc.buildings.slice();
             bpSorted.sort(ks.sortBy('efficiency.blueprint'));
 
             for (var i = 0; i < bpSorted.length; i++) {
-                result += '<br>' + bpSorted[i].name + ': ' + gamePage.getDisplayValue(bpSorted[i].efficiency.blueprint);
+                result += '<br>' + bpSorted[i].name + ': ' + gamePage.getDisplayValue(1/bpSorted[i].efficiency.blueprint);
             }
         }
 
