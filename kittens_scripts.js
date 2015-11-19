@@ -330,7 +330,7 @@ var ks = {
         var allBuildingNames = {
             production: ['steamworks', 'magneto'], 
             oil: ['oilWell', 'biolab'],
-            kittens: ['mansion', 'spaceStation']
+            housing: ['mansion', 'spaceStation']
         };
 		
 		// ignore reactor since it's limited by titanium storage cap, 
