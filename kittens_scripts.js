@@ -407,7 +407,7 @@ var ks = {
             totalSteelCost = 0;
             for (var p = 0; p < prices.length; p++) {
                 var price = prices[p];
-                console.log('price: ' + price.val + ' ' + price.name);
+                //console.log('price: ' + price.val + ' ' + price.name);
                 //console.log(steelProducts[price.name]);
                 if (steelProducts[price.name]) {
                     //console.log(price.name);
@@ -422,7 +422,7 @@ var ks = {
             }
 
             building.cost.steel = totalSteelCost;
-            console.log('total steel: ' + totalSteelCost);
+            //console.log('total steel: ' + totalSteelCost);
 
 
             // calculate production bonus for next building
@@ -455,15 +455,15 @@ var ks = {
             //convert building bonus to %
             building.bonus *= 100;
 
-            console.log('bonus: ' + building.bonus + '%');
+            //console.log('bonus: ' + building.bonus + '%');
 
             // % increase in base production per steel
             building.efficiency.steel = building.bonus / building.cost.steel;
-            console.log('steel efficiency: ' + building.efficiency.steel);
+            //console.log('steel efficiency: ' + building.efficiency.steel);
 
             if (building.cost.blueprint) {
                 building.efficiency.blueprint = building.bonus / building.cost.blueprint;
-                console.log('blueprint efficiency: ' + building.efficiency.blueprint);
+                //console.log('blueprint efficiency: ' + building.efficiency.blueprint);
             }
         }
 
@@ -483,10 +483,10 @@ var ks = {
             }
         }
 
-        console.log('best steel: ' + mostEfficientBuilding.steel.name);
+        //console.log('best steel: ' + mostEfficientBuilding.steel.name);
 
         if (building.cost.blueprint) {
-            console.log('best blueprint: ' + mostEfficientBuilding.blueprint.name);
+            //console.log('best blueprint: ' + mostEfficientBuilding.blueprint.name);
         }
 
         return {buildings: unlockedBuildings, best: mostEfficientBuilding};
@@ -494,42 +494,45 @@ var ks = {
 
     steelCalcFormatted: function () {
 
-        var productionResult;
-        var housingResult;
-        var oilResult;
+        var productionResult, housingResult, oilResult;
+        var divider = '<br/><hr/><br/>';
 
+        housingResult = ks.steelCalcFormattedType('housing');
+        oilResult = ks.steelCalcFormattedType('oil');
+        productionResult = ks.steelCalcFormattedType('production');
 
-        // check for housing
-        if (gamePage.bld.get('mansion').val < 1 && gamePage.space.getProgram('spaceStation').val < 1) {
-            housingResult = 'Unlock mansions to use housing calculator.';
-        }
-
-        //check for oil
-        if (gamePage.bld.get('oilWell').val < 1 && (gamePage.bld.get('biolab').val < 1 || !gamePage.bld.get('biolab').effects.oilPerTick)) {
-            oilResult = 'Unlock oil wells to use oil calculator.';
-        }
-
-
-        var result = ks.steelCalcFormattedProduction();
+        var result = productionResult + divider + oilResult + divider + housingResult;
 
         return result;
 
     },
 
-    steelCalcFormattedProduction: function () {
+    steelCalcFormattedType: function (type) {
 
         // check for production buildings
-        if (!gamePage.bld.get('magneto').unlocked) {
+        if (type == 'production' && !gamePage.bld.get('magneto').unlocked) {
             return 'Unlock magnetos to use production calculator.';
         }
 
-        var productionCalc = ks.steelCalc('production');
+        if (type == 'housing' && !gamePage.bld.get('mansion').unlocked) {
+            return 'Unlock mansions to use housing calculator.';
+        }
 
-        var result = 'Best production building by steel cost: ' + productionCalc.best.steel.name;
-        result += '<br>Best production building by blueprint cost: ' + productionCalc.best.blueprint.name;
+        if (type == 'oil' && !gamePage.bld.get('oilWell').unlocked) {
+            return 'Unlock oil wells to use oil calculator.';
+        }
+
+        var productionCalc = ks.steelCalc(type);
+
+        var requiresBlueprints = productionCalc.buildings.best.blueprint? true: false;
+
+        var result = 'Best ' +type + ' building by steel cost: ' + productionCalc.best.steel.name;
+        if(requiresBlueprints) {
+            result += '<br>Best '+ type + ' building by blueprint cost: ' + productionCalc.best.blueprint.name;
+        }
+
+        // sort buildings by steel efficiency
         result += '<br><br>Efficiency by steel:';
-
-        // sort buildings by efficiency
         var steelSorted = productionCalc.buildings.slice();
         steelSorted.sort(ks.sortBy('efficiency.steel'));
 
@@ -537,12 +540,15 @@ var ks = {
             result += '<br>' + steelSorted[i].name + ': ' + gamePage.getDisplayValue(steelSorted[i].efficiency.steel);
         }
 
-        result += '<br><br>Efficiency by blueprints:';
-        var bpSorted = productionCalc.buildings.slice();
-        bpSorted.sort(ks.sortBy('efficiency.blueprint'));
+        // sort buildings by blueprint efficiency, if applicable
+        if(requiresBlueprints) {
+            result += '<br><br>Efficiency by blueprints:';
+            var bpSorted = productionCalc.buildings.slice();
+            bpSorted.sort(ks.sortBy('efficiency.blueprint'));
 
-        for (var i = 0; i < steelSorted.length; i++) {
-            result += '<br>' + bpSorted[i].name + ': ' + gamePage.getDisplayValue(bpSorted[i].efficiency.steel);
+            for (var i = 0; i < bpSorted.length; i++) {
+                result += '<br>' + bpSorted[i].name + ': ' + gamePage.getDisplayValue(bpSorted[i].efficiency.blueprint);
+            }
         }
 
         return result;
@@ -838,59 +844,62 @@ var ks = {
 
         // Building price calculator
 
-        buildingCalculator: function () {
-            var result = '';
 
-            result += '<select id="buildingPriceSelector" onchange="ks.calcs.calculateBuildingPrice()">';
-            result += '<optgroup label="Buildings">';
-            var buildings = gamePage.bld.buildingsData.slice(0);
-            buildings.sort(function (a, b) {
-                return a.label.localeCompare(b.label)
-            });
-            for (var i = 0; i < buildings.length; i++) {
-                if (buildings[i].unlocked) {
-                    result += '<option value="bld_' + buildings[i].name + '">' + buildings[i].label + '</option>';
-                }
-            }
-            if (gamePage.religionTab.visible) {
-                result += '</optgroup><optgroup label="Religion">';
-                var religion = gamePage.religion.religionUpgrades.slice(0);
-                religion.sort(function (a, b) {
-                    return a.label.localeCompare(b.label)
-                });
-                for (var i = 0; i < religion.length; i++) {
-                    if (gamePage.religion.faith >= religion[i].faith && religion[i].upgradable) {
-                        result += '<option value="RU_' + religion[i].name + '">' + religion[i].label + '</option>';
-                    }
-                }
-            }
-            if (gamePage.bld.get('ziggurat').val > 0) {
-                result += '</optgroup><optgroup label="Ziggurats">';
-                var religion = gamePage.religion.zigguratUpgrades.slice(0);
-                religion.sort(function (a, b) {
-                    return a.label.localeCompare(b.label)
-                });
-                for (var i = 0; i < religion.length; i++) {
-                    result += '<option value="ZU_' + religion[i].name + '">' + religion[i].label + '</option>';
-                }
-            }
-            if (gamePage.spaceTab.visible) {
-                result += '</optgroup><optgroup label="Space">';
-                var space = gamePage.space.programs.slice(0);
-                space.sort(function (a, b) {
-                    return a.title.localeCompare(b.title)
-                });
-                for (var i = 0; i < space.length; i++) {
-                    if (space[i].unlocked && space[i].upgradable) {
-                        result += '<option value="space_' + space[i].name + '">' + space[i].title + '</option>';
-                    }
-                }
-            }
-            result += '</optgroup></select><br><label>Target number of buildings: <input id="buildingPriceNumber" oninput="ks.calcs.calculateBuildingPrice();"></label>';
+        getBldLabel: function(a) {
+		  return typeof a.label !== 'undefined' ? a.label : a.stages[a.stage || 0].label
+		},
 
-            result += '<div id="buildingPriceHolder"></div>';
-            return result;
-        },
+		bldLabelCmp: function(a, b) {
+		  var aLabel = typeof a.label !== 'undefined' ? a.label : a.stages[a.stage || 0].label
+		  var bLabel = typeof b.label !== 'undefined' ? b.label : b.stages[b.stage || 0].label
+		  return aLabel.localeCompare(bLabel);
+		},
+
+		buildingCalculator: function() {
+		  var result = '';
+
+		  result += '<select id="buildingPriceSelector" onchange="calculateBuildingPrice()">';
+		  result += '<optgroup label="Buildings">';
+		  var buildings = gamePage.bld.buildingsData.slice(0);
+		  buildings.sort(ks.calcs.bldLabelCmp);
+		  for (var i = 0; i < buildings.length; i++) {
+			if (buildings[i].unlocked) {
+			  result += '<option value="bld_'+buildings[i].name+'">'+ks.calcs.getBldLabel(buildings[i])+'</option>';
+			}
+		  }
+		  if (gamePage.religionTab.visible) {
+			result += '</optgroup><optgroup label="Religion">';
+			var religion = gamePage.religion.religionUpgrades.slice(0);
+			religion.sort(function(a, b){return a.label.localeCompare(b.label)});
+			for (var i = 0; i < religion.length; i++) {
+			  if (gamePage.religion.faith >= religion[i].faith && religion[i].upgradable) {
+				result += '<option value="RU_'+religion[i].name+'">'+religion[i].label+'</option>';
+			  }
+			}
+		  }
+		  if (gamePage.bld.get('ziggurat').val>0) {
+			result += '</optgroup><optgroup label="Ziggurats">';
+			var religion = gamePage.religion.zigguratUpgrades.slice(0);
+			religion.sort(function(a, b){return a.label.localeCompare(b.label)});
+			for (var i = 0; i < religion.length; i++) {
+			  result += '<option value="ZU_'+religion[i].name+'">'+religion[i].label+'</option>';
+			}
+		  }
+		  if (gamePage.spaceTab.visible) {
+			result += '</optgroup><optgroup label="Space">';
+			var space = gamePage.space.programs.slice(0);
+			space.sort(function(a, b){return a.title.localeCompare(b.title)});
+			for (var i = 0; i < space.length; i++) {
+			  if (space[i].unlocked && space[i].upgradable) {
+				result += '<option value="space_'+space[i].name+'">'+space[i].title+'</option>';
+			  }
+			}
+		  }
+		  result += '</optgroup></select><br><label>Target number of buildings: <input id="buildingPriceNumber" oninput="calculateBuildingPrice();"></label>';
+
+		  result += '<div id="buildingPriceHolder"></div>'
+		  return result;
+		},
 
         calculateBuildingPrice: function () {
             var priceContainer = document.getElementById('buildingPriceHolder');
