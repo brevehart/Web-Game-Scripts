@@ -23,27 +23,27 @@ var ks = {
 	// allow suppression of trading/hunting messages when using Kitten Scientists
 	suppressMessages: function(){
 		// trading
-		TradeManager.prototype.trade = (function(){
-			var oldTrade = TradeManager.prototype.trade;
-			
-			return function(){
-			
-				// suppress trading messages
-				var msgFn = gamePage.msg;
-				if(ks.options.suppressTradingMessages){
-					gamePage.msg = function() {};
-				}
-				
-				var result = oldTrade.apply(this, arguments);
-				
-				if(ks.options.suppressTradingMessages){
-					gamePage.msg = msgFn;
-				}
-				
-				return result;
-			};
-			
-		})();
+		//TradeManager.prototype.trade = (function(){
+		//	var oldTrade = TradeManager.prototype.trade;
+		//
+		//	return function(){
+		//
+		//		// suppress trading messages
+		//		var msgFn = gamePage.msg;
+		//		if(ks.options.suppressTradingMessages){
+		//			gamePage.msg = function() {};
+		//		}
+		//
+		//		var result = oldTrade.apply(this, arguments);
+		//
+		//		if(ks.options.suppressTradingMessages){
+		//			gamePage.msg = msgFn;
+		//		}
+		//
+		//		return result;
+		//	};
+		//
+		//})();
 
 		// hunting
 		Engine.prototype.hunt = (function(){
